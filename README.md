@@ -1,8 +1,9 @@
 # jtalk
 
 Spoken notifications for **Claude Code** and **OpenAI Codex CLI** on Windows.
-When an agent finishes a turn or needs your attention, jtalk tells you out loud —
-"Claude: fixed the auth bug, all tests pass" — so you don't have to watch terminals.
+When an agent finishes a turn or emits one of JTalk's supported attention hooks, jtalk
+tells you out loud — "Claude: fixed the auth bug, all tests pass" — so you don't have
+to watch terminals.
 
 ## How it works
 
@@ -15,6 +16,11 @@ jtalk say "..." ─────────────────────�
                                                                                   ├─ TTS: windows | piper | openai
                                                                                   └─ tray icon (mute/volume/voice/engine)
 ```
+
+Hook coverage differs between agents. In particular, Codex `PermissionRequest` covers
+approval prompts only. Codex does not currently expose a lifecycle hook when its
+`request_user_input` tool presents an ordinary question, so JTalk cannot announce that
+the Codex session is waiting for an answer.
 
 - One dual-mode exe: `jtalk daemon` is the resident speaker (auto-started on demand,
   mutex-guarded single instance); `jtalk hook <source>` is the fire-and-forget adapter
@@ -150,19 +156,35 @@ is off by default because assistant replies may be sensitive.
 }
 ```
 
-## Integration details
+## Supported hooks and known gaps
 
-**Claude Code** — installed as a plugin (`plugin/` in this repo, registered as a local
-marketplace). Hooks: `Stop` (turn summary), `Notification` matcher
-`permission_prompt|idle_prompt` (attention), `SessionEnd`. All exec-form with a 10 s
-timeout, invoking `jtalk.exe hook claude` which reads the hook JSON from stdin.
+JTalk subscribes to the following agent hooks and events:
 
-**Codex CLI** — `%USERPROFILE%\.codex\hooks.json` with `Stop` and `PermissionRequest`
-hooks invoking `jtalk.exe hook codex`. Codex has no SessionEnd event, so session-end
-announcements are Claude-Code-only. A `PermissionRequest` hook that exits 0 with no
-output leaves the approval flow untouched (per Codex hook semantics). For Codex
-versions older than the hooks system (< 0.124), use the legacy notify fallback in
-user `config.toml` instead (root level, before any `[section]`):
+| Agent | Agent hook/event | JTalk event | Spoken behavior |
+|---|---|---|---|
+| Claude Code | `Stop` | `turn` | Summarizes and announces the completed turn. |
+| Claude Code | `Notification` matching `permission_prompt` | `attention` | Announces that Claude needs approval. |
+| Claude Code | `Notification` matching `idle_prompt` | `attention` | Announces that Claude is idle and needs attention. |
+| Claude Code | `SessionEnd` | `session-end` | Announces that the Claude session ended. |
+| Codex CLI | `Stop` | `turn` | Summarizes and announces the completed turn. |
+| Codex CLI | `PermissionRequest` | `attention` | Announces a shell, file-edit, MCP, or similar approval request. |
+| Codex CLI | `request_user_input` tool request | _Not available_ | **Not announced:** Codex exposes no corresponding lifecycle hook. |
+| Codex CLI | Session end | _Not available_ | **Not announced:** Codex exposes no `SessionEnd` hook. |
+
+The Claude Code hooks are installed as a plugin (`plugin/` in this repo, registered as
+a local marketplace). They use exec-form handlers with a 10 s timeout and invoke
+`jtalk.exe hook claude`, which reads the hook JSON from stdin.
+
+The Codex hooks are installed in `%USERPROFILE%\.codex\hooks.json` and invoke
+`jtalk.exe hook codex`. A `PermissionRequest` hook that exits 0 with no output leaves
+the approval flow untouched. `PermissionRequest` must not be treated as a general
+"waiting for user input" event: it does not fire for questions presented by Codex's
+`request_user_input` tool. See the current
+[Codex hooks reference](https://learn.chatgpt.com/docs/hooks) for the supported lifecycle
+events and tool-hook limitations.
+
+For Codex versions older than the hooks system (< 0.124), use the legacy notify fallback
+in user `config.toml` instead (root level, before any `[section]`):
 
 ```toml
 notify = ["C:\\Users\\<you>\\AppData\\Local\\jtalk\\bin\\jtalk.exe", "hook", "codex-notify"]
