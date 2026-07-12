@@ -1,0 +1,13 @@
+{
+  "name": "jtalk",
+  "owner": {
+    "name": "Jason"
+  },
+  "plugins": [
+    {
+      "name": "jtalk",
+      "source": "./plugin",
+      "description": "Voice notifications for Claude Code"
+    }
+  ]
+}

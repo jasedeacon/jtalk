@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: Restore locked dependencies
+        run: dotnet restore jtalk.slnx --locked-mode --nologo
+      - name: Build
+        run: dotnet build jtalk.slnx -c Release --no-restore --nologo
+      - name: Test
+        run: dotnet test jtalk.slnx -c Release --no-build --nologo
+      - name: Verify version metadata
+        shell: pwsh
+        run: |
+          [xml]$props = Get-Content Directory.Build.props
+          $versionGroup = @($props.Project.PropertyGroup | Where-Object { $_.Version })[0]
+          $assemblyVersion = [string]$versionGroup.Version
+          $pluginVersion = (Get-Content plugin/.claude-plugin/plugin.json -Raw | ConvertFrom-Json).version
+          if ($assemblyVersion -ne $pluginVersion) { throw "assembly and plugin versions must match" }
+      - name: Publish self-contained win-x64 check
+        run: dotnet publish src/JTalk/JTalk.csproj -c Release -r win-x64 --self-contained true --no-restore -o artifacts/publish-check --nologo
+      - name: Installer tests (PowerShell 7)
+        shell: pwsh
+        run: ./tests/install/Installer.Tests.ps1
+      - name: Installer tests (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/install/Installer.Tests.ps1
+      - name: Verify lock files are unchanged
+        shell: pwsh
+        run: git diff --exit-code -- '**/packages.lock.json'

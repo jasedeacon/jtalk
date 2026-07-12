@@ -24,6 +24,11 @@ jtalk say "..." ─────────────────────�
   events always speak instantly without an LLM call.
 - Each tool gets its own voice plus a spoken prefix ("Claude: …" / "Codex: …").
 
+The resident daemon appears in the Windows notification area. Its context menu provides
+quick access to mute, volume, TTS engine, per-tool voices, configuration, logs, and quit.
+
+![JTalk tray icon context menu with mute, volume, engine, voice, configuration, logs, and quit controls](assets/jtalk-tray.png)
+
 ## Install
 
 Requirements: Windows 11 x64, Windows PowerShell 5.1 or PowerShell 7, and Claude Code

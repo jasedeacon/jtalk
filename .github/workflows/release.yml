@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: Verify version metadata
+        shell: pwsh
+        run: |
+          $tagVersion = '${{ github.ref_name }}'.TrimStart('v')
+          [xml]$props = Get-Content Directory.Build.props
+          $versionGroup = @($props.Project.PropertyGroup | Where-Object { $_.Version })[0]
+          $assemblyVersion = [string]$versionGroup.Version
+          $pluginVersion = (Get-Content plugin/.claude-plugin/plugin.json -Raw | ConvertFrom-Json).version
+          if ($tagVersion -ne $assemblyVersion -or $tagVersion -ne $pluginVersion) {
+            throw "tag ($tagVersion), assembly ($assemblyVersion), and plugin ($pluginVersion) versions must match"
+          }
+      - run: dotnet restore jtalk.slnx --locked-mode --nologo
+      - run: dotnet build jtalk.slnx -c Release --no-restore --nologo
+      - run: dotnet test jtalk.slnx -c Release --no-build --nologo
+      - name: Publish self-contained win-x64
+        run: dotnet publish src/JTalk/JTalk.csproj -c Release -r win-x64 --self-contained true --no-restore -o artifacts/publish --nologo
+      - name: Package release
+        shell: pwsh
+        run: |
+          $version = '${{ github.ref_name }}'.TrimStart('v')
+          $stage = 'artifacts/package'
+          New-Item -ItemType Directory -Force $stage | Out-Null
+          Copy-Item artifacts/publish/jtalk.exe $stage
+          Copy-Item install,codex,plugin,.claude-plugin -Destination $stage -Recurse
+          Copy-Item README.md,LICENSE,CHANGELOG.md,THIRD_PARTY_NOTICES.md -Destination $stage
+          Copy-Item "$env:ProgramFiles/dotnet/LICENSE.txt" "$stage/DOTNET_LICENSE.txt"
+          Copy-Item "$env:ProgramFiles/dotnet/ThirdPartyNotices.txt" "$stage/DOTNET_THIRD_PARTY_NOTICES.txt"
+          $archive = "artifacts/jtalk-v$version-win-x64.zip"
+          tar.exe -a -c -f $archive -C $stage .
+          if ($LASTEXITCODE -ne 0) { throw "release archive creation failed" }
+          $hash = (Get-FileHash $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash *$(Split-Path $archive -Leaf)" | Set-Content artifacts/SHA256SUMS.txt -Encoding ascii
+      - name: Create draft release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create '${{ github.ref_name }}' `
+            artifacts/jtalk-*-win-x64.zip artifacts/SHA256SUMS.txt `
+            --verify-tag --draft --generate-notes --title 'JTalk ${{ github.ref_name }}'
