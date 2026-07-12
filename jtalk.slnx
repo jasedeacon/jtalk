@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/JTalk/JTalk.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/JTalk.Tests/JTalk.Tests.csproj" />
+  </Folder>
+</Solution>

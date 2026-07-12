@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"__JTALK_EXE__\" hook codex",
+            "commandWindows": "\"__JTALK_EXE__\" hook codex",
+            "statusMessage": "jtalk: speaking turn summary",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"__JTALK_EXE__\" hook codex",
+            "commandWindows": "\"__JTALK_EXE__\" hook codex",
+            "statusMessage": "jtalk: speaking attention alert",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

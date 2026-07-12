@@ -1,0 +1,9 @@
+bin/
+obj/
+*.user
+.vs/
+publish/
+# Generated at install time from hooks.template.json (contains machine-specific exe path)
+plugin/hooks/hooks.json
+# Per-machine Claude permissions; project skills may still be committed intentionally.
+.claude/settings.local.json

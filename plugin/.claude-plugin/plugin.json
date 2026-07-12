@@ -1,0 +1,8 @@
+{
+  "name": "jtalk",
+  "description": "Spoken notifications for Claude Code: turn summaries, attention alerts, and session-end announcements via the jtalk daemon",
+  "version": "0.1.0",
+  "author": {
+    "name": "Jason"
+  }
+}

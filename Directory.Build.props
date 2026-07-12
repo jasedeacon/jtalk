@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Version>0.1.0</Version>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <AccelerateBuildsInVisualStudio>true</AccelerateBuildsInVisualStudio>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Code quality">
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Required for IDE0005 (unused usings) in command-line builds; CS1591 (missing
+         XML docs on public members) is opted out — this is an app, not a library. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+</Project>

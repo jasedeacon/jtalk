@@ -1,0 +1,41 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__JTALK_EXE__",
+            "args": ["hook", "claude"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__JTALK_EXE__",
+            "args": ["hook", "claude"],
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "__JTALK_EXE__",
+            "args": ["hook", "claude"],
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
