@@ -1,5 +1,7 @@
 # jtalk
 
+Disclaimer: This is a mostly AI generated project to fill a gap in my personal development process.
+
 Spoken notifications for **Claude Code** and **OpenAI Codex CLI** on Windows.
 When an agent finishes a turn or emits one of JTalk's supported attention hooks, jtalk
 tells you out loud — "Claude: fixed the auth bug, all tests pass" — so you don't have
