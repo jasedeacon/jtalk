@@ -19,9 +19,9 @@ jobs:
       - uses: actions/setup-dotnet@v5
         with:
           global-json-file: global.json
-      - uses: github/codeql-action/init@v4
+      - uses: github/codeql-action/init@v4.37.3
         with:
           languages: csharp
       - run: dotnet restore jtalk.slnx --locked-mode --nologo
       - run: dotnet build jtalk.slnx -c Release --no-restore --nologo
-      - uses: github/codeql-action/analyze@v4
+      - uses: github/codeql-action/analyze@v4.37.3
